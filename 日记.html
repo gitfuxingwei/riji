@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>简易日记</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fdf5e6; /* 暖色调背景 */
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background-color: #fff8dc; /* 更暖色调的容器背景 */
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+    .login-container, .diary-container {
+      display: none;
+    }
+    .visible {
+      display: block;
+    }
+    .date-picker {
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .calendar-icon {
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+    #calendar {
+      display: none;
+    }
+    #calendar table {
+      width: 100%;
+    }
+    #calendar th, #calendar td {
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+    }
+    #calendar td:hover {
+      background-color: #f0e68c; /* 暖色调的悬停效果 */
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-top: 10px;
+      padding: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #ff7f50; /* 按钮也使用暖色调 */
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 登录页面 -->
+    <div class="login-container visible">
+      <h2>登录</h2>
+      <label for="username">账号:</label><br>
+      <input type="text" id="username"><br><br>
+      <label for="password">密码:</label><br>
+      <input type="password" id="password"><br><br>
+      <button onclick="login()">登录</button>
+      <p id="login-error" style="color: red;"></p>
+    </div>
+
+    <!-- 日记页面 -->
+    <div class="diary-container">
+      <h2>日记</h2>
+      <div class="date-picker">
+        <span>选择日期：</span>
+        <span class="calendar-icon" onclick="toggleCalendar()">📅</span>
+        <span id="selected-date"></span>
+        <div id="calendar"></div>
+      </div>
+
+      <textarea id="diary-content" placeholder="写下你的日记..."></textarea><br>
+      <button onclick="saveDiary()">保存日记</button>
+
+      <p id="save-message" style="color: green;"></p>
+    </div>
+  </div>
+
+  <script>
+    let loggedIn = false;
+    const calendarContainer = document.getElementById('calendar');
+    const selectedDate = document.getElementById('selected-date');
+    const diaryContent = document.getElementById('diary-content');
+    const loginContainer = document.querySelector('.login-container');
+    const diaryContainer = document.querySelector('.diary-container');
+    const loginError = document.getElementById('login-error');
+    const saveMessage = document.getElementById('save-message');
+
+    // 显示登录页面
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      if (username === 'admin' && password === '123456') {
+        loggedIn = true;
+        loginContainer.classList.remove('visible');
+        diaryContainer.classList.add('visible');
+        setDefaultDate(); // 设置当前日期
+      } else {
+        loginError.textContent = '账号或密码错误';
+      }
+    }
+
+    // 显示或隐藏日历
+    function toggleCalendar() {
+      calendarContainer.style.display = calendarContainer.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // 生成日历
+    function generateCalendar() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let calendarHTML = '<table><tr>';
+      for (let i = 1; i <= daysInMonth; i++) {
+        calendarHTML += `<td onclick="selectDate(${i})">${i}</td>`;
+        if (i % 7 === 0) calendarHTML += '</tr><tr>';
+      }
+      calendarHTML += '</tr></table>';
+      calendarContainer.innerHTML = calendarHTML;
+    }
+
+    // 选择日期
+    function selectDate(day) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      selectedDate.textContent = `${year}-${month}-${day}`;
+      calendarContainer.style.display = 'none';
+      loadDiary();
+    }
+
+    // 保存日记
+    function saveDiary() {
+      const date = selectedDate.textContent;
+      const content = diaryContent.value;
+
+      if (!date) {
+        saveMessage.textContent = '请先选择日期';
+        return;
+      }
+
+      localStorage.setItem(date, content);
+      saveMessage.textContent = '日记已保存';
+    }
+
+    // 加载日记
+    function loadDiary() {
+      const date = selectedDate.textContent;
+      const content = localStorage.getItem(date);
+
+      if (content) {
+        diaryContent.value = content;
+        saveMessage.textContent = '已加载之前的日记';
+      } else {
+        diaryContent.value = '';
+        saveMessage.textContent = '';
+      }
+    }
+
+    // 设置当前日期为默认日期
+    function setDefaultDate() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const day = now.getDate();
+      selectedDate.textContent = `${year}-${month}-${day}`;
+      loadDiary(); // 加载当天日记
+    }
+
+    // 初始化
+    window.onload = function () {
+      generateCalendar(); // 生成日历
+    };
+  </script>
+</body>
+</html>
